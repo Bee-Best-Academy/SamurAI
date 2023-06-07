@@ -5,6 +5,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report
 from sklearn.preprocessing import LabelEncoder
 import joblib
+import time
 
 # Load the dataset from the CSV file
 data = pd.read_csv("cyberbullying_tweets.csv")
@@ -27,8 +28,13 @@ X_test = vectorizer.transform(X_test)
 
 # Train a Random Forest classifier
 print("Random Forest")
+start_time = time.time()
 rf = RandomForestClassifier()
 rf.fit(X_train, y_train)
+
+end_time = time.time()  # Stop measuring the duration
+duration = end_time - start_time
+duration_minutes = duration / 60
 
 # Predict the sentiment for the test set using Random Forest
 y_pred_rf = rf.predict(X_test)
@@ -45,7 +51,8 @@ print(report_rf)
 accuracy_rf = (y_pred_rf == y_test).mean() * 100
 error_percentage_rf = 100 - accuracy_rf
 
-# Display accuracy and error percentage
+# Display duration, accuracy, and error percentage
+print("Duration: {:.2f} minutes".format(duration_minutes))
 print("Accuracy: {:.2f}%".format(accuracy_rf))
 print("Error Percentage: {:.2f}%".format(error_percentage_rf))
 print()

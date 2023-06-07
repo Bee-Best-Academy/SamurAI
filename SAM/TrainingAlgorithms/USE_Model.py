@@ -1,11 +1,13 @@
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split
+import nltk
+from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.metrics import classification_report
 import tensorflow_hub as hub
-from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
 from sklearn.preprocessing import LabelEncoder
 import joblib
+import time
 
 # Load the dataset from the CSV file
 data = pd.read_csv("cyberbullying_tweets.csv")
@@ -16,6 +18,7 @@ labels = data['cyberbullying_type'].tolist()
 
 # Train a Universal Sentence Encoder classifier
 print("Universal Sentence Encoder (USE)")
+start_time = time.time()  # Start measuring the duration
 # Load the Universal Sentence Encoder module
 module_url = "https://tfhub.dev/google/universal-sentence-encoder/4"
 embed = hub.load(module_url)
@@ -30,9 +33,13 @@ y_encoded = label_encoder.fit_transform(labels)
 # Split the data into training and testing sets
 X_train, X_test, y_train, y_test = train_test_split(tweet_embeddings, y_encoded, test_size=0.2, random_state=42)
 
-# Train a logistic regression classifier on the training set
-classifier = LogisticRegression()
+# Train an SVM classifier on the training set
+classifier = SVC(kernel='rbf')
 classifier.fit(X_train, y_train)
+
+end_time = time.time()  # Stop measuring the duration
+duration = end_time - start_time
+duration_minutes = duration / 60
 
 # Predict on the test set
 y_pred_use = classifier.predict(X_test)
@@ -46,12 +53,10 @@ report = classification_report(y_test, y_pred_use)
 print(report)
 
 # Calculate accuracy and error percentage
-y_pred_use = np.array(y_pred_use)
-y_test = np.array(y_test)
 accuracy_use = (y_pred_use == y_test).mean() * 100
 error_percentage_use = 100 - accuracy_use
 
-# Display accuracy and error percentage
+# Display duration, accuracy, and error percentage
+print("Duration: {:.2f} minutes".format(duration_minutes))
 print("Accuracy: {:.2f}%".format(accuracy_use))
 print("Error Percentage: {:.2f}%".format(error_percentage_use))
-print()

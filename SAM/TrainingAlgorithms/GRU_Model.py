@@ -8,6 +8,7 @@ from keras.models import Sequential
 from keras.layers import Embedding, GRU, Dropout, Dense
 from keras.callbacks import EarlyStopping
 from sklearn.metrics import classification_report
+import time
 
 # Load the dataset from the CSV file
 data = pd.read_csv("cyberbullying_tweets.csv")
@@ -50,7 +51,11 @@ model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=
 early_stopping = EarlyStopping(patience=3, restore_best_weights=True)
 
 # Train the model with early stopping
+start_time = time.time()  # Start measuring the duration
 model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=8, batch_size=32, callbacks=[early_stopping])
+end_time = time.time()  # Stop measuring the duration
+duration_seconds = end_time - start_time
+duration_minutes = duration_seconds / 60
 
 # Save the trained model
 model.save('GRU_cyberbullying_model.h5')
@@ -71,7 +76,8 @@ print(report)
 accuracy_gru = (np.argmax(predictions_gru, axis=1) == y_test).mean() * 100
 error_percentage_gru = 100 - accuracy_gru
 
-# Display accuracy and error percentage
+# Display duration, accuracy, and error percentage
+print("Duration: {:.2f} minutes".format(duration_minutes))
 print("Accuracy: {:.2f}%".format(accuracy_gru))
 print("Error Percentage: {:.2f}%".format(error_percentage_gru))
 print()

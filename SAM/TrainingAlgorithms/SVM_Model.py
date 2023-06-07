@@ -5,6 +5,7 @@ from sklearn.svm import SVC
 from sklearn.metrics import classification_report
 from sklearn.preprocessing import LabelEncoder
 import joblib
+import time
 
 # Load the dataset from the CSV file
 data = pd.read_csv("cyberbullying_tweets.csv")
@@ -27,8 +28,13 @@ X_test = vectorizer.transform(X_test)
 
 # Train an SVM classifier
 print("Support Vector Machines (SVM)")
+start_time = time.time()
 svm = SVC(probability=True)
 svm.fit(X_train, y_train)
+
+end_time = time.time()  # Stop measuring the duration
+duration = end_time - start_time
+duration_minutes = duration / 60
 
 # Predict the labels for the test set using SVM
 y_pred_svm = svm.predict(X_test)
@@ -45,6 +51,7 @@ print(report_svm)
 accuracy_svm = (y_pred_svm == y_test).mean() * 100
 error_percentage_svm = 100 - accuracy_svm
 
-# Display accuracy and error percentage
+# Display duration, accuracy, and error percentage
+print("Duration: {:.2f} minutes".format(duration_minutes))
 print("Accuracy: {:.2f}%".format(accuracy_svm))
 print("Error Percentage: {:.2f}%".format(error_percentage_svm))
