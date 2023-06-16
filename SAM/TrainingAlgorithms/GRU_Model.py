@@ -9,6 +9,9 @@ from keras.layers import Embedding, GRU, Dropout, Dense
 from keras.callbacks import EarlyStopping
 from sklearn.metrics import classification_report
 import time
+import json
+import pickle
+import base64
 
 # Load the dataset from the CSV file
 data = pd.read_csv("cyberbullying_tweets.csv")
@@ -51,6 +54,7 @@ model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=
 early_stopping = EarlyStopping(patience=3, restore_best_weights=True)
 
 # Train the model with early stopping
+print("Gated Recurrent Unit")
 start_time = time.time()  # Start measuring the duration
 model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=8, batch_size=32, callbacks=[early_stopping])
 end_time = time.time()  # Stop measuring the duration
@@ -59,6 +63,19 @@ duration_minutes = duration_seconds / 60
 
 # Save the trained model
 model.save('GRU_cyberbullying_model.h5')
+
+# Convert the classifier to serialized representations
+classifier_serialized = base64.b64encode(pickle.dumps(model)).decode('utf-8')
+
+# Create a dictionary to hold the serialized objects
+model_dict = {
+    'label_encoder': label_encoder.classes_.tolist(),
+    'classifier': classifier_serialized
+}
+
+# Save the model dictionary as a JSON file
+with open('GRU_cyberbullying_model.json', 'w') as json_file:
+    json.dump(model_dict, json_file)
 
 # Evaluate the performance of the GRU
 print("Classification Report - GRU:")

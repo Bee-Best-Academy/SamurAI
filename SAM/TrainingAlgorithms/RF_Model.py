@@ -6,6 +6,9 @@ from sklearn.metrics import classification_report
 from sklearn.preprocessing import LabelEncoder
 import joblib
 import time
+import json
+import pickle
+import base64
 
 # Load the dataset from the CSV file
 data = pd.read_csv("cyberbullying_tweets.csv")
@@ -35,6 +38,21 @@ rf.fit(X_train, y_train)
 end_time = time.time()  # Stop measuring the duration
 duration = end_time - start_time
 duration_minutes = duration / 60
+
+# Convert the classifier and vectorizer to serialized representations
+vectorizer_serialized = base64.b64encode(pickle.dumps(vectorizer)).decode('utf-8')
+classifier_serialized = base64.b64encode(pickle.dumps(rf)).decode('utf-8')
+
+# Create a dictionary to hold the serialized objects
+model_dict = {
+    'vectorizer': vectorizer_serialized,
+    'label_encoder': label_encoder.classes_.tolist(),
+    'classifier': classifier_serialized
+}
+
+# Save the model dictionary as a JSON file
+with open('RF_cyberbullying_model.json', 'w') as json_file:
+    json.dump(model_dict, json_file)
 
 # Predict the sentiment for the test set using Random Forest
 y_pred_rf = rf.predict(X_test)

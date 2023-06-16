@@ -8,6 +8,9 @@ from sklearn.svm import SVC
 from sklearn.preprocessing import LabelEncoder
 import joblib
 import time
+import json
+import pickle
+import base64
 
 # Load the dataset from the CSV file
 data = pd.read_csv("cyberbullying_tweets.csv")
@@ -43,6 +46,19 @@ duration_minutes = duration / 60
 
 # Predict on the test set
 y_pred_use = classifier.predict(X_test)
+
+# Convert the classifier to serialized representations
+classifier_serialized = base64.b64encode(pickle.dumps(classifier)).decode('utf-8')
+
+# Create a dictionary to hold the serialized objects
+model_dict = {
+    'label_encoder': label_encoder.classes_.tolist(),
+    'classifier': classifier_serialized
+}
+
+# Save the model dictionary as a JSON file
+with open('USE_cyberbullying_model.json', 'w') as json_file:
+    json.dump(model_dict, json_file)
 
 # Save the trained model
 joblib.dump(classifier, 'USE_cyberbullying_model.pkl')

@@ -20,7 +20,7 @@ y = df['cyberbullying_type'].values
 example_sentences = [
     "Look that nigger boy, is crazy.",  # ethnicity
     "I'm not sexist, I just don't like women.",  # gender
-    "I need a gif of an old cat laughing."  # not_cyberbullying
+    "I need a gif of an cat laughing."  # not_cyberbullying
 ]
 
 # Encode the labels
@@ -98,10 +98,10 @@ for sentence, prediction, probs in zip(example_sentences, predicted_labels, prob
 print()
 # Train a Gradient Boosting classifier
 
-# Load the trained Random Forest model
+# Load the trained Gradient Boosting model
 gb = joblib.load('GB_cyberbullying_model.pkl')
 
-# Make the predictions using Random Forest
+# Make the predictions using Gradient Boosting
 predictions = gb.predict(vectorized_sentences)
 probabilities = gb.predict_proba(vectorized_sentences)
 
@@ -127,19 +127,24 @@ for sentence, prediction, probs in zip(example_sentences, predicted_labels, prob
 
 print()
 # Train a Universal Sentence Encoder classifier
-
 module_url = "https://tfhub.dev/google/universal-sentence-encoder/4"
 embed = hub.load(module_url)
 
 # Vectorize the example sentences using the Universal Sentence Encoder
 vectorized_sentences_use = embed(example_sentences).numpy()
 
-# Load the trained Random Forest model
+# Load the trained Universal Sentence Encoder model
 use = joblib.load('USE_cyberbullying_model.pkl')
 
-# Make the predictions using Random Forest
-predictions = use.predict(vectorized_sentences_use)
-probabilities = use.predict_proba(vectorized_sentences_use)
+# Make the predictions using the model's decision function
+decision_values = use.decision_function(vectorized_sentences_use)
+
+# Normalize the decision values to obtain probabilities
+probabilities = np.exp(decision_values)
+probabilities /= np.sum(probabilities, axis=1)[:, np.newaxis]
+
+# Determine the predicted labels
+predictions = np.argmax(probabilities, axis=1)
 
 # Decode the predictions
 predicted_labels = label_encoder.inverse_transform(predictions)
