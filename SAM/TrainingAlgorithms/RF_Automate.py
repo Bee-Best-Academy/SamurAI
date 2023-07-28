@@ -157,7 +157,7 @@ def integrate_models(model_files):
     new_tweets = [
         "I need a gif of a cat laughing.",  # not_cyberbullying
         "I hate to call her a bitch, would one of my female followers do it for me?",  # gender
-        "i’d let the beat bully me in school"  # age
+        "i'd let the beat bully me in school"  # age
     ]
 
     # Preprocess new data
@@ -239,7 +239,7 @@ def integrate_models(model_files):
         print()
 
     # Refine the models based on user feedback
-    refine_models(user_feedback, y_true)
+    refine_models(user_feedback, y_true, new_tweets)
 
 def collect_user_feedback(new_tweets, predictions):
     # Collect user feedback on sentiment predictions
@@ -264,41 +264,31 @@ def collect_user_feedback(new_tweets, predictions):
 
     return user_feedback
 
-def refine_models(user_feedback, y_true):
-    # Create a new DataFrame to store the corrected tweets and labels
-    corrected_df = pd.DataFrame(columns=['tweet_text', 'cyberbullying_type'])
+
+def refine_models(user_feedback, y_true, new_tweets):
+    # Load the original DataFrame
+    df = pd.read_csv('cyberbullying_tweets.csv')
 
     for tweet, feedback_data in user_feedback.items():
         prediction = feedback_data['prediction']
         feedback = feedback_data['feedback']
 
         if feedback == 'correct':
-            corrected_tweet = tweet
             correct_label = prediction
-
-            # Add the corrected tweet and label to the corrected_df DataFrame
-            corrected_df = corrected_df._append({'tweet_text': corrected_tweet, 'cyberbullying_type': correct_label}, ignore_index=True)
         elif feedback == 'incorrect':
-            corrected_tweet = tweet
             index = list(user_feedback.keys()).index(tweet)
             correct_label = y_true[index]
 
-            # Add the corrected tweet and label to the corrected_df DataFrame
-            corrected_df = corrected_df._append({'tweet_text': corrected_tweet, 'cyberbullying_type': correct_label}, ignore_index=True)
+        # Update the label in the original DataFrame based on the corrected tweet
+        mask = df['tweet_text'] == tweet
+        df.loc[mask, 'cyberbullying_type'] = correct_label
 
-    # Load the original DataFrame
-    updated_df = pd.read_csv('cyberbullying_tweets.csv')
-
-    # Update the labels in the original DataFrame based on the corrected tweets
-    for _, row in corrected_df.iterrows():
-        tweet_text = row['tweet_text']
-        cyberbullying_type = row['cyberbullying_type']
-
-        mask = updated_df['tweet_text'] == tweet_text
-        updated_df.loc[mask, 'cyberbullying_type'] = cyberbullying_type
+    # Add the new tweets and corresponding labels to the DataFrame
+    new_tweets_df = pd.DataFrame({'tweet_text': new_tweets, 'cyberbullying_type': y_true})
+    df = pd.concat([df, new_tweets_df], ignore_index=True)
 
     # Save the updated DataFrame back to the CSV file
-    updated_df.to_csv('cyberbullying_tweets.csv', index=False)
+    df.to_csv('cyberbullying_tweets.csv', index=False)
 
     # Retrain the RF model
     train_rf_model()
